@@ -1,0 +1,29 @@
+{
+  "name": "List of ...",
+  "version": "0.0.0",
+  "description": "Import Wikipedia tables to Freebase",
+  "keywords": [
+    "Freebase",
+    "Wikipedia"
+  ],
+  "authors": [
+    "hangy"
+  ],
+  "license": "WTFPL",
+  "homepage": "http://listof.freebase.hangy.de/",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "paper-elements": "Polymer/paper-elements#~0.3.5",
+    "polymer": "Polymer/polymer#~0.3.5",
+    "core-elements": "Polymer/core-elements#~0.3.5",
+    "Freebase.js": "hangy/Freebase.js",
+    "juicy-ace-editor": "~0.0.2"
+  }
+}

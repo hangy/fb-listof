@@ -1,0 +1,25 @@
+<link rel="import" href="../../imports/core.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="table-selector">
+  <template>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" title="Select">[X]</th>
+          <th scope="col">Columns</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template repeat="{{t in tables}}">
+          <tr>
+            <td><input type="submit" value="{{t.index}}"></td>
+            <td>{{t.columns}}</td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </template>
+
+  <script src="table-selector.js"></script>
+</polymer-element>

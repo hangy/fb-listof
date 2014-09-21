@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>OAuth 2.0 Callback Recipient</title>
+</head>
+<body>
+<link rel="import" href="imports/jquery.html">
+<link rel="import" href="imports/freebase.html">
+<link rel="import" href="imports/get.html">
+<script>
+$(document).ready(function(){
+  // First, parse the query string, (c) Google Apache 2.0: https://developers.google.com/accounts/docs/OAuth2UserAgent#handlingtheresponse
+  var params = {}, queryString = location.hash.substring(1),
+      regex = /([^&=]+)=([^&]*)/g, m;
+  while (m = regex.exec(queryString)) {
+    params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+  }
+
+  // Verify token
+  var verificationUrl = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + encodeURIComponent(params['access_token']);
+  get(verificationUrl).then(function(response) {
+    var verification = JSON.parse(response);
+    if (!verification || verification.audience !== CLIENT_ID) {
+      throw new Error("Verification of access_token failed.");
+    }
+
+    var d = new Date();
+    d.setSeconds(d.getSeconds() + params.expires_in);
+    params.expires_at = d;
+
+    localStorage.token = JSON.stringify(params);
+  }).catch(function(error) {
+    localStorage.token = null;
+  }).then(function() {
+    window.close();
+  });
+})
+</script>
+</body>
+</html>

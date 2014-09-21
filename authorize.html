@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<title>ATTAT</title>
+<link rel="import" href="imports/jquery.html">
+<link rel="import" href="imports/freebase.html">
+<link rel="import" href="imports/core.html">
+</head>
+
+<body>
+<button id="authorize" tabindex="1">Authorize</button>
+
+<script>
+$(document).ready(function(){
+  var indexUrl = new URL('index.html', window.location.href).href;
+
+  $('#authorize').click(function() {
+    getNewToken().then(function() {
+      window.location.replace(indexUrl);
+    });
+  });
+
+  var token = getAccessToken();
+  if (token && token.access_token) {
+    window.location.replace(indexUrl);
+  }
+});
+</script>
+</body>
+</html>

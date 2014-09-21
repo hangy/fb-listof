@@ -1,0 +1,28 @@
+<link rel="import" href="../../imports/core.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="table-viewer" attributes="table">
+  <template>
+    <table>
+      <thead>
+        <tr>
+          <template repeat="{{c in table.columns}}">
+            <th scope="col">{{c}}</th>
+          </template>
+        </tr>
+      </thead>
+      <tbody>
+          <template repeat="{{r in table.rows}}">
+            <tr>
+              <template repeat="{{c in table.columns}}">
+                <td>{{r | toHtml(c)}}</td>
+              </template>
+            </tr>
+          </template>
+        </template>
+      </tbody>
+    </table>
+  </template>
+
+  <script src="table-viewer.js"></script>
+</polymer-element>

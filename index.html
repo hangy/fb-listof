@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<title>List of&nbsp;&hellip;</title>
+<script src="bower_components/platform/platform.js"></script>
+<link rel="import" href="bower_components/juicy-ace-editor/src/juicy-ace-editor.html">
+<link rel="import" href="imports/jquery.html">
+<link rel="import" href="imports/freebase.html">
+<link rel="import" href="imports/get.html">
+<link rel="import" href="imports/core.html">
+<link rel="import" href="components/table-selector/table-selector.html">
+<link rel="import" href="components/table-viewer/table-viewer.html">
+</head>
+
+<body>
+<h1>List of&nbsp;&hellip;</h1>
+
+<section>
+  <form id="search">
+    <label>
+      <span>Wikipedia Page</span>
+      <input type="text" id="page" name="page" required autofocus autocomplete="on" tabindex="1">
+    </label>
+
+    <div>
+      <button type="submit">GO</button>
+    </div>
+  </form>
+</section>
+
+<section id="tables">
+  <h2>Available Tables</h2>
+  <form id="tableselector">
+    <table-selector></table-selector>
+  </form>
+</section>
+
+<section>
+  <h2>Selected Table</h2>
+  <table-viewer table="{}"></table-viewer>
+</section>
+
+<section>
+  <h2>Extract, Transform &amp; Load</h2>
+  <h3>Extract</h3>
+  <pre><code>
+/* returs true if the row should be transformed and imported */
+function shouldExtract(row, rowIndex, table) {</code></pre>
+  <juicy-ace-editor id="extract-js" mode="ace/mode/javascript" style="height: 250px; width: 100%;">return true;</juicy-ace-editor>
+  <pre><code>}</code></pre>
+
+  <h3>Transform</h3>
+  <pre><code>
+/* returns the complete mql write query for teh current row */
+function transform(row, rowIndex, table) {</code></pre>
+  <juicy-ace-editor id="transform-js" mode="ace/mode/javascript" style="height: 250px; width: 100%;">
+return {
+  id: $.freebase.wikipedia_to_freebase($('a', row.Name).attr('href'), function(r) { return r.id }),
+  type: { id: '/common/topic', connect: 'insert' }
+};
+  </juicy-ace-editor>
+  <pre><code>}</code></pre>
+ 
+  <h3>Load</h3>
+  <p><button type="submit" id="load">Do it!</button></p>
+</section>
+
+<footer>
+<p>Data <a href="//creativecommons.org/licenses/by/2.5/" rel="license">CC-BY-2.5</a> <a href="//www.freebase.com">Freebase</a>, some articles <a href="//creativecommons.org/licenses/by-sa/3.0/legalcode" rel="license">CC-by-sa-3.0</a> <a href="//www.wikipedia.org">Wikipedia</a>.</p>
+<p>Source code available on <a href="//github.com/hangy/fb-listof">GitHub</a>.</p>
+</footer>
+
+<script>
+var tables = [];
+var dateline = null;
+
+$(document).ready(function(){
+  var token = getAccessToken();
+  if (!token || !token.access_token) {
+    window.location.replace(new URL('authorize.html', window.location.href).href);
+  }
+
+  initOAuth2();
+
+  $('#search').submit(function(event) {
+    while(tables.length > 0) {
+      tables.pop();
+    }
+
+    getTables($('#page').val()).then(applyTables);
+    event.preventDefault();
+  });
+
+  $('#tableselector').submit(function(event) {
+    showTable(tables[1], document.querySelector('table-viewer'));
+    $('#tables').hide();
+    event.preventDefault();
+  });
+
+  function updateDateline(datas) {
+    for (var i = datas.length - 1; i >= 0; --i) {
+      if (datas[i].dateline) {
+        dateline = datas[i].dateline;
+        break;
+      }
+    }
+  }
+
+  $('#load').click(function(event) {
+    var table = document.querySelector('table-viewer').table;
+    var extract = new Function('row', 'rowIndex', 'table', document.querySelector('#extract-js').editor.getValue());
+    var transform = new Function('row', 'rowIndex', 'table', document.querySelector('#transform-js').editor.getValue());
+
+    for (var rowIndex in table.rows) {
+      var row = table.rows[rowIndex];
+      if (!extract(row, rowIndex, table)) {
+        continue;
+      }
+
+      var query = transform(row, rowIndex, table);
+      $.freebase.mqlwrite(query, {oauth2: $.freebase.oauth2, key: API_KEY}, function(data) {
+        console.log(data);
+      });
+    }
+
+    event.preventDefault();
+  });
+
+  function applyTables(data) {
+    while(tables.length > 0) {
+      tables.pop();
+    }
+
+    for (var index = 0; index < data.length; ++index) {
+      var table = {
+        index: index,
+        html: data[index],
+        columns: getColumns(data[index])
+      };
+
+      tables.push(table);
+    }
+
+    switch (tables.length) {
+      case 0:
+        // TODO: Show info?
+        return;
+      case 1:
+        showTable(tables[0], document.querySelector('table-viewer'));
+        $('#tables').hide();
+        break;
+      default:
+        // Show overview;
+        $('#tables').show();
+        return;
+    }
+  }
+
+})
+</script>
+</body>
+</html>
