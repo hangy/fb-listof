@@ -61,8 +61,17 @@ return {
   </juicy-ace-editor>
   <pre><code>}</code></pre>
  
+  <h3>Preview</h3>
+  <form id="preview">
+    <div>
+      <button type="submit">GO</button>
+    </div>
+  </form>
+  <juicy-ace-editor id="preview-js" mode="ace/mode/json" style="height: 250px; width: 100%;"></juicy-ace-editor>
+
   <h3>Load</h3>
   <p><button type="submit" id="load">Do it!</button></p>
+  <p style="font-size:smaller;">Remark: This does not submit the text from the preview in one go but calls mqlwrite several times, once for each row.</p>
 </section>
 
 <footer>
@@ -106,10 +115,18 @@ $(document).ready(function(){
     }
   }
 
-  $('#load').click(function(event) {
+  function getExtract() {
+    return new Function('row', 'rowIndex', 'table', document.querySelector('#extract-js').editor.getValue());
+  }
+
+  function getTransform() {
+    return new Function('row', 'rowIndex', 'table', document.querySelector('#transform-js').editor.getValue());
+  }
+
+  function etl(callback) {
     var table = document.querySelector('table-viewer').table;
-    var extract = new Function('row', 'rowIndex', 'table', document.querySelector('#extract-js').editor.getValue());
-    var transform = new Function('row', 'rowIndex', 'table', document.querySelector('#transform-js').editor.getValue());
+    var extract = getExtract();
+    var transform = getTransform();
 
     for (var rowIndex in table.rows) {
       var row = table.rows[rowIndex];
@@ -118,10 +135,28 @@ $(document).ready(function(){
       }
 
       var query = transform(row, rowIndex, table);
+      callback(query);
+    }
+  }
+
+  $('#preview').submit(function(event) {
+    var data = [];
+
+    etl(function(query) {
+      data.push(query);
+    });
+
+    document.querySelector('#preview-js').editor.setValue(JSON.stringify(data, null, 2));
+    
+    event.preventDefault();
+  });
+
+  $('#load').click(function(event) {
+    etl(function(query) {
       $.freebase.mqlwrite(query, {oauth2: $.freebase.oauth2, key: API_KEY}, function(data) {
         console.log(data);
       });
-    }
+    });
 
     event.preventDefault();
   });
