@@ -13,7 +13,7 @@
       <tbody>
         <template repeat="{{t in tables}}">
           <tr>
-            <td><input type="submit" value="{{t.index}}"></td>
+            <td><input type="submit" value="{{t.index}}" on-click="{{submitClick}}"></td>
             <td>{{t.columns}}</td>
           </tr>
         </template>

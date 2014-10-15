@@ -91,8 +91,8 @@ $(document).ready(function(){
     event.preventDefault();
   });
 
-  $('#tableselector').submit(function(event) {
-    showTable(tables[1], document.querySelector('table-viewer'));
+  $('#tableselector table-selector').on('tableSelected', function(event) {
+    showTable(tables[event.originalEvent.detail], document.querySelector('table-viewer'));
     $('#tables').hide();
     event.preventDefault();
   });
